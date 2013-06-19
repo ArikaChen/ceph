@@ -167,7 +167,7 @@ public:
   virtual string get_type() { return string(); }
 
   virtual int get(RGWRados *store, string& entry, RGWMetadataObject **obj) { return -ENOTSUP; }
-  virtual int put(RGWRados *store, string& entry, RGWObjVersionTracker& objv_tracker, JSONObj *obj) { return -ENOTSUP; }
+  virtual int put(RGWRados *store, string& entry, RGWObjVersionTracker& objv_tracker, time_t mtime, JSONObj *obj) { return -ENOTSUP; }
 
   virtual void get_pool_and_oid(RGWRados *store, string& key, rgw_bucket& bucket, string& oid) {}
 
@@ -289,6 +289,10 @@ int RGWMetadataManager::get(string& metadata_key, Formatter *f)
   f->open_object_section("metadata_info");
   encode_json("key", metadata_key, f);
   encode_json("ver", obj->get_version(), f);
+  time_t mtime = obj->get_mtime();
+  if (mtime > 0) {
+    encode_json("mtime", mtime, f);
+  }
   encode_json("data", *obj, f);
   f->close_section();
 
@@ -315,16 +319,18 @@ int RGWMetadataManager::put(string& metadata_key, bufferlist& bl)
 
   obj_version *objv = &objv_tracker.write_version;
 
+  time_t mtime = 0;
 
   JSONDecoder::decode_json("key", metadata_key, &parser);
   JSONDecoder::decode_json("ver", *objv, &parser);
+  JSONDecoder::decode_json("mtime", mtime, &parser);
 
   JSONObj *jo = parser.find_obj("data");
   if (!jo) {
     return -EINVAL;
   }
 
-  return handler->put(store, entry, objv_tracker, jo);
+  return handler->put(store, entry, objv_tracker, mtime, jo);
 }
 
 int RGWMetadataManager::remove(string& metadata_key)
@@ -506,7 +512,7 @@ int RGWMetadataManager::post_modify(string& section, string& key, RGWMetadataLog
 }
 
 int RGWMetadataManager::put_entry(RGWMetadataHandler *handler, string& key, bufferlist& bl, bool exclusive,
-                                  RGWObjVersionTracker *objv_tracker, map<string, bufferlist> *pattrs)
+                                  RGWObjVersionTracker *objv_tracker, time_t mtime, map<string, bufferlist> *pattrs)
 {
   string section;
   RGWMetadataLogData log_data;
@@ -521,7 +527,7 @@ int RGWMetadataManager::put_entry(RGWMetadataHandler *handler, string& key, buff
 
   ret = rgw_put_system_obj(store, bucket, oid,
                            bl.c_str(), bl.length(), exclusive,
-                           objv_tracker, pattrs);
+                           objv_tracker, mtime, pattrs);
   if (ret < 0)
     return ret;
 
