@@ -11,6 +11,7 @@
 #include "cls_replica_log_types.h"
 
 #include "common/Formatter.h"
+#include "common/ceph_json.h"
 
 void cls_replica_log_item_marker::dump(Formatter *f) const
 {
@@ -60,7 +61,7 @@ void cls_replica_log_bound::dump(Formatter *f) const
   position_time.gmtime(f->dump_stream("position_time"));
   f->dump_string("marker_exists", marker_exists ? "yes" : "no");
   if (marker_exists) {
-    encode_json(marker, f); //progress marker
+    encode_json("marker", marker, f); //progress marker
   }
 }
 
