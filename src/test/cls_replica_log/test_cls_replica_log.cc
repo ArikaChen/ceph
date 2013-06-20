@@ -51,11 +51,19 @@ TEST(cls_replica_log, test_set_get_marker)
 
   ASSERT_EQ(reply_position_marker, marker);
   ASSERT_EQ((double)10, (double)reply_time);
-  ASSERT_EQ(return_progress_list.front().entity_id, entity);
-  ASSERT_EQ(return_progress_list.front().position_marker, marker);
-  ASSERT_EQ(return_progress_list.front().position_time, time);
-  ASSERT_EQ((unsigned)1, return_progress_list.front().items.size());
-  ASSERT_EQ("tester_obj1", return_progress_list.front().items.front().item_name);
+  string response_entity;
+  string response_marker;
+  utime_t response_time;
+  list<pair<string, utime_t> > response_item_list;
+
+  cls_replica_log_extract_marker(return_progress_list.front(),
+                                 response_entity, response_marker,
+                                 response_time, response_item_list);
+  ASSERT_EQ(response_entity, entity);
+  ASSERT_EQ(response_marker, marker);
+  ASSERT_EQ(response_time, time);
+  ASSERT_EQ((unsigned)1, response_item_list.size());
+  ASSERT_EQ("tester_obj1", response_item_list.front().first);
 }
 
 TEST(cls_replica_log, test_bad_update)
@@ -115,4 +123,31 @@ TEST(cls_replica_log, test_bad_get)
   ASSERT_EQ(-ENOENT,
             cls_replica_log_get_bounds(ioctx, oid, reply_position_marker,
                                        reply_time, return_progress_list));
+}
+
+TEST(cls_replica_log, test_double_delete)
+{
+  SETUP_DATA
+
+  ADD_MARKER
+
+  librados::ObjectWriteOperation opc;
+  progress.items.clear();
+  cls_replica_log_update_bound(opc, progress);
+  ASSERT_EQ(0, ioctx.operate(oid, &opc));
+  librados::ObjectWriteOperation opd;
+  cls_replica_log_delete_bound(opd, entity);
+  ASSERT_EQ(0, ioctx.operate(oid, &opd));
+
+  librados::ObjectWriteOperation opd2;
+  cls_replica_log_delete_bound(opd2, entity);
+  ASSERT_EQ(0, ioctx.operate(oid, &opd2));
+
+  string reply_position_marker;
+  utime_t reply_time;
+  list<cls_replica_log_progress_marker> return_progress_list;
+  ASSERT_EQ(0, cls_replica_log_get_bounds(ioctx, oid, reply_position_marker,
+                                          reply_time, return_progress_list));
+  ASSERT_EQ((unsigned)0, return_progress_list.size());
+
 }
