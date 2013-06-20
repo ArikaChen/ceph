@@ -39,7 +39,7 @@ static int get_bounds(cls_method_context_t hctx, cls_replica_log_bound& bound)
     ::decode(bound, bounds_bl_i);
   } catch (buffer::error& err) {
     bound = cls_replica_log_bound();
-    CLS_LOG(1, "ERROR: get_bounds(): failed to decode on-disk bounds object");
+    CLS_LOG(0, "ERROR: get_bounds(): failed to decode on-disk bounds object");
     return -EIO;
   }
 
@@ -63,7 +63,7 @@ static int cls_replica_log_set(cls_method_context_t hctx,
   try {
     ::decode(op, in_iter);
   } catch (buffer::error& err) {
-    CLS_LOG(1, "ERROR: cls_replica_log_set(): failed to decode op");
+    CLS_LOG(0, "ERROR: cls_replica_log_set(): failed to decode op");
     return -EINVAL;
   }
 
@@ -90,13 +90,13 @@ static int cls_replica_log_delete(cls_method_context_t hctx,
   try {
     ::decode(op, in_iter);
   } catch (buffer::error& err) {
-    CLS_LOG(1, "ERROR: cls_replica_log_delete(): failed to decode op");
+    CLS_LOG(0, "ERROR: cls_replica_log_delete(): failed to decode op");
     return -EINVAL;
   }
 
   cls_replica_log_bound bound;
   int rc = get_bounds(hctx, bound);
-  if (rc < 0) {
+  if (rc < 0 && rc != -ENOENT) {
     return rc;
   }
 
@@ -117,7 +117,7 @@ static int cls_replica_log_get(cls_method_context_t hctx,
   try {
     ::decode(op, in_iter);
   } catch (buffer::error& err) {
-    CLS_LOG(1, "ERROR: cls_replica_log_get(): failed to decode op");
+    CLS_LOG(0, "ERROR: cls_replica_log_get(): failed to decode op");
     return -EINVAL;
   }
 
@@ -128,7 +128,6 @@ static int cls_replica_log_get(cls_method_context_t hctx,
   }
 
   cls_replica_log_get_bounds_ret ret;
-  //start optimistically and move backwards if necessary
   ret.oldest_time = bound.get_oldest_time();
   ret.position_marker = bound.get_lowest_marker_bound();
   bound.get_markers(ret.markers);
