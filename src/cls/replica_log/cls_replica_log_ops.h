@@ -60,14 +60,10 @@ struct cls_replica_log_set_marker_op {
 WRITE_CLASS_ENCODER(cls_replica_log_set_marker_op)
 
 struct cls_replica_log_get_bounds_op {
-#warning "is a blank op a good plan, or pointless?"
   cls_replica_log_get_bounds_op() {}
-
-  static const int get_bounds_op_id = 66; // just a random number we can check
 
   void encode(bufferlist& bl) const {
     ENCODE_START(1, 1, bl);
-    uint8_t sanity = get_bounds_op_id;
     ::encode(sanity, bl);
     ENCODE_FINISH(bl);
   }
@@ -76,7 +72,6 @@ struct cls_replica_log_get_bounds_op {
     DECODE_START(1, bl);
     uint8_t sanity;
     ::decode(sanity, bl);
-    assert(sanity == get_bounds_op_id);
     DECODE_FINISH(bl);
   }
 

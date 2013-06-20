@@ -13,7 +13,7 @@
 
 void cls_replica_log_delete_marker_op::dump(Formatter *f) const
 {
-  f->dump_string("entity id", entity_id);
+  f->dump_string("entity_id", entity_id);
 }
 
 void cls_replica_log_delete_marker_op::
@@ -26,9 +26,7 @@ generate_test_instances(std::list<cls_replica_log_delete_marker_op*>& ls)
 
 void cls_replica_log_set_marker_op::dump(Formatter *f) const
 {
-  f->open_object_section("marker");
-  marker.dump(f);
-  f->close_section(); // marker
+  encode_json("marker", marker, f);
 }
 
 void cls_replica_log_set_marker_op::
@@ -55,16 +53,9 @@ generate_test_instances(std::list<cls_replica_log_get_bounds_op*>& ls)
 
 void cls_replica_log_get_bounds_ret::dump(Formatter *f) const
 {
-  f->dump_string("position marker", position_marker);
-  f->dump_stream("oldest time") << oldest_time;
-  f->open_array_section("entity markers");
-  std::list<cls_replica_log_progress_marker>::const_iterator i;
-  for (i = markers.begin(); i != markers.end(); ++i) {
-    f->open_object_section("marker");
-    i->dump(f);
-    f->close_section(); // marker
-  }
-  f->close_section(); // entity markers
+  f->dump_string("position_marker", position_marker);
+  oldest_time.gmtime(f->dump_stream("oldest_time"));
+  dump_json("entity_markers", markers, f);
 }
 
 void cls_replica_log_get_bounds_ret::
