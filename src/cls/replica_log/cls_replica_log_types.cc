@@ -32,16 +32,9 @@ generate_test_instances(std::list<cls_replica_log_item_marker*>& ls)
 void cls_replica_log_progress_marker::dump(Formatter *f) const
 {
   f->dump_string("entity", entity_id);
-  f->dump_string("position marker", position_marker);
-  f->dump_stream("position time") << position_time;
-  f->open_array_section("items in progress");
-  for (std::list<cls_replica_log_item_marker>::const_iterator i = items.begin();
-	i != items.end(); ++i) {
-    f->open_object_section("item");
-    i->dump(f);
-    f->close_section(); // item
-  }
-  f->close_section(); // items_in_progress
+  f->dump_string("position_marker", position_marker);
+  position_time.gmtime(f->dump_stream("position_time"));
+  encode_json("items_in_progress", items, f);
 }
 
 void cls_replica_log_progress_marker::
@@ -63,13 +56,11 @@ generate_test_instances(std::list<cls_replica_log_progress_marker*>& ls)
 
 void cls_replica_log_bound::dump(Formatter *f) const
 {
-  f->dump_string("position marker", position_marker);
-  f->dump_stream("position time") << position_time;
-  f->dump_string("marker exists", marker_exists ? "yes" : "no");
+  f->dump_string("position_marker", position_marker);
+  position_time.gmtime(f->dump_stream("position_time"));
+  f->dump_string("marker_exists", marker_exists ? "yes" : "no");
   if (marker_exists) {
-    f->open_object_section("progress marker");
-    marker.dump(f);
-    f->close_section(); //progress marker
+    encode_json(marker, f); //progress marker
   }
 }
 
