@@ -10,6 +10,7 @@
 
 #include "cls_replica_log_ops.h"
 #include "common/Formatter.h"
+#include "common/ceph_json.h"
 
 void cls_replica_log_delete_marker_op::dump(Formatter *f) const
 {
@@ -55,7 +56,7 @@ void cls_replica_log_get_bounds_ret::dump(Formatter *f) const
 {
   f->dump_string("position_marker", position_marker);
   oldest_time.gmtime(f->dump_stream("oldest_time"));
-  dump_json("entity_markers", markers, f);
+  encode_json("entity_markers", markers, f);
 }
 
 void cls_replica_log_get_bounds_ret::

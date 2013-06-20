@@ -64,14 +64,11 @@ struct cls_replica_log_get_bounds_op {
 
   void encode(bufferlist& bl) const {
     ENCODE_START(1, 1, bl);
-    ::encode(sanity, bl);
     ENCODE_FINISH(bl);
   }
 
   void decode(bufferlist::iterator& bl) {
     DECODE_START(1, bl);
-    uint8_t sanity;
-    ::decode(sanity, bl);
     DECODE_FINISH(bl);
   }
 
