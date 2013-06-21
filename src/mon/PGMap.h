@@ -109,6 +109,31 @@ public:
     redo_full_sets();
   }
 
+  version_t get_version() const {
+    return version;
+  }
+  void set_version(version_t v) {
+    version = v;
+  }
+  epoch_t get_last_osdmap_epoch() const {
+    return last_osdmap_epoch;
+  }
+  void set_last_osdmap_epoch(epoch_t e) {
+    last_osdmap_epoch = e;
+  }
+  epoch_t get_last_pg_scan() const {
+    return last_pg_scan;
+  }
+  void set_last_pg_scan(epoch_t e) {
+    last_pg_scan = e;
+  }
+  utime_t get_stamp() const {
+    return stamp;
+  }
+  void set_stamp(utime_t s) {
+    stamp = s;
+  }
+
   void update_pg(pg_t pgid, bufferlist& bl);
   void remove_pg(pg_t pgid);
   void update_osd(int osd, bufferlist& bl);

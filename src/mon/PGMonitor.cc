@@ -318,9 +318,13 @@ void PGMonitor::read_pgmap_meta()
 
   string prefix = "pgmap_meta";
 
-  pg_map.version = mon->store->get(prefix, "version");
-  pg_map.last_osdmap_epoch = mon->store->get(prefix, "last_osdmap_epoch");
-  pg_map.last_pg_scan = mon->store->get(prefix, "last_pg_scan");
+  version_t version = mon->store->get(prefix, "version");
+  epoch_t last_osdmap_epoch = mon->store->get(prefix, "last_osdmap_epoch");
+  epoch_t last_pg_scan = mon->store->get(prefix, "last_pg_scan");
+  pg_map.set_version(version);
+  pg_map.set_last_osdmap_epoch(last_osdmap_epoch);
+  pg_map.set_last_pg_scan(last_pg_scan);
+
   {
     bufferlist bl;
     mon->store->get(prefix, "full_ratios", bl);
@@ -334,7 +338,9 @@ void PGMonitor::read_pgmap_meta()
     bufferlist bl;
     mon->store->get(prefix, "stamp", bl);
     bufferlist::iterator p = bl.begin();
-    ::decode(pg_map.stamp, p);
+    utime_t stamp;
+    ::decode(stamp, p);
+    pg_map.set_stamp(stamp);
   }
 }
 
