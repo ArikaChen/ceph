@@ -100,8 +100,9 @@ class Notify {
 public:
   string gen_dbg_prefix() {
     stringstream ss;
-    ss << "Notify(" << make_pair(cookie, notify_id) << " "
-       << " in_progress_watchers=" << in_progress_watchers
+    ss << "Notify(" << make_pair(cookie, notify_id) << " ";
+    ss << " cookie " << cookie;
+    ss << " in_progress_watchers=" << in_progress_watchers
        << ") ";
     return ss.str();
   }

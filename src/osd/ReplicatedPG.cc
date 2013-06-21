@@ -3522,6 +3522,8 @@ void ReplicatedPG::do_osd_op_effects(OpContext *ctx)
        p != ctx->notifies.end();
        ++p) {
     dout(10) << "do_osd_op_effects, notify " << *p << dendl;
+    uint64_t nid = osd->get_next_id(get_osdmap()->get_epoch());
+    dout(10) << " nid " << nid << dendl;
     NotifyRef notif(
       Notify::makeNotifyRef(
 	conn,
@@ -3529,7 +3531,7 @@ void ReplicatedPG::do_osd_op_effects(OpContext *ctx)
 	p->bl,
 	p->timeout,
 	p->cookie,
-	osd->get_next_id(get_osdmap()->get_epoch()),
+	nid,
 	ctx->obc->obs.oi.user_version.version,
 	osd));
     for (map<pair<uint64_t, entity_name_t>, WatchRef>::iterator i =
