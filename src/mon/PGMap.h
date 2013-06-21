@@ -26,6 +26,8 @@
 #include "common/config.h"
 #include <sstream>
 
+#include "MonitorDBStore.h"
+
 namespace ceph { class Formatter; }
 
 class PGMap {
@@ -78,6 +80,7 @@ public:
   pool_stat_t pg_sum_delta;
   utime_t stamp_delta;
 
+  void update_delta(CephContext *cct, utime_t inc_stamp, pool_stat_t& pg_sum_old);
   void clear_delta();
 
   set<pg_t> creating_pgs;   // lru: front = new additions, back = recently pinged
@@ -98,6 +101,19 @@ public:
       num_osd(0)
   {}
 
+  void set_full_ratios(float full, float nearfull) {
+    if (full_ratio == full && nearfull_ratio == nearfull)
+      return;
+    full_ratio = full;
+    nearfull_ratio = nearfull;
+    redo_full_sets();
+  }
+
+  void update_pg(pg_t pgid, bufferlist& bl);
+  void remove_pg(pg_t pgid);
+  void update_osd(int osd, bufferlist& bl);
+  void remove_osd(int osd);
+
   void apply_incremental(CephContext *cct, const Incremental& inc);
   void redo_full_sets();
   void register_nearfull_status(int osd, const osd_stat_t& s);
@@ -109,6 +125,8 @@ public:
   
   void encode(bufferlist &bl, uint64_t features=-1) const;
   void decode(bufferlist::iterator &bl);
+
+  void dirty_all(Incremental& inc);
 
   void dump(Formatter *f) const; 
   void dump_basic(Formatter *f) const;
